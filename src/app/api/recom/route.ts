@@ -38,7 +38,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const huggingFaceAPI = 'https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2';
     const headers = {
-      Authorization: `Bearer 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`,
+      Authorization: `Bearer ${process.env.HUGGINIG_FACE_TOKEN}`,
     };
 
     // Fetch mentors from the database
