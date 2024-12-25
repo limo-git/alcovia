@@ -162,7 +162,7 @@ export default function Home() {
 
   const handlePersonalInfoSubmit = async (name: string, email: string) => {
     setUserData({ ...userData, name, email });
-    // setLoading(true); // Set loading while checking user existence
+    setLoading(true); // Set loading while checking user existence
 
     // try {
     //   const response = await fetch('/api/db', {
@@ -193,7 +193,7 @@ export default function Home() {
     //       setStep(3);
     //     } else {
     //       setUserExists(false);
-    //       setStep(2);
+          setStep(2);
     //     }
     //   } else {
     //     console.error('Error checking user existence:', result);
@@ -202,7 +202,7 @@ export default function Home() {
     // } catch (error) {
     //   console.error('Network error:', error);
     // } finally {
-    //   setLoading(false); // Stop loading after user check
+      setLoading(false); // Stop loading after user check
     // }
   };
 
