@@ -77,7 +77,7 @@ interface DashboardProps {
   };
   recommendedTasks: Task[] | null;
   recommendedActivities:Activity[] | null;
-  recommendedWorkshops:Workshop[]| null;
+  recommendedWorkshops:Workshop[] |null;
   mentors:Mentor[]| null;
 }
 
@@ -139,7 +139,7 @@ export function Dashboard({ userData,mentors,recommendedActivities, recommendedW
       {
         label: 'Attendance Rate (%)',
         data: workshopData[selectedType].map((data) => data.attendanceRate),
-        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+        backgroundColor: 'rgb(111, 143, 175)',
       },
     ],
   };
@@ -150,7 +150,7 @@ export function Dashboard({ userData,mentors,recommendedActivities, recommendedW
       {
         label: 'Feedback Score',
         data: workshopData[selectedType].map((data) => data.feedbackScore),
-        borderColor: 'rgba(75, 192, 192, 1)',
+        borderColor: 'rgb(111, 143, 175)',
         fill: false,
       },
     ],
@@ -278,9 +278,9 @@ export function Dashboard({ userData,mentors,recommendedActivities, recommendedW
 
           {/* Workshops */}
           <section id="workshops" className="space-y-6">
-          <h2 className="text-3xl font-bold">Upcoming Workshops</h2>
+          {/* <h2 className="text-3xl font-bold">Upcoming Workshops</h2> */}
             {/* <MarqueeDemo/> */}
-            <InfiniteMovingCardsDemo/>
+            <InfiniteMovingCardsDemo recommendedWorkshops={recommendedWorkshops ?? []}/>
            
     {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       {(recommendedWorkshops ?? []).map((workshop, index) => (

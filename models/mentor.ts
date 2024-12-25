@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-// Define the Mentor interface that extends mongoose.Document
+
 export interface IMentor extends Document {
   name: string;
   expertise: string[];
@@ -8,7 +8,7 @@ export interface IMentor extends Document {
   availability: [string];
 }
 
-// Define the mentorSchema with type IStudent
+
 const mentorSchema = new Schema<IMentor>({
   name: { type: String, required: true },
   expertise: { type: [String], required: true },
@@ -16,5 +16,5 @@ const mentorSchema = new Schema<IMentor>({
   availability: { type: [String], required: true, }, 
 });
 
-// Export the Mentor model or fallback to the existing model if it already exists
+
 export default mongoose.models.Mentor || mongoose.model<IMentor>('Mentor', mentorSchema);

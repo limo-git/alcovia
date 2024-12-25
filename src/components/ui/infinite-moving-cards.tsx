@@ -96,7 +96,7 @@ export const InfiniteMovingCards = ({
             className="w-[350px] max-w-full relative rounded-2xl border border-b-0 flex-shrink-0 border-slate-700 px-8 py-6 md:w-[450px]"
             style={{
               background:
-                "linear-gradient(180deg, var(--slate-800), var(--slate-900))",
+                "rgb(111, 143, 175)",
             }}
             key={item.title}
           >
@@ -108,20 +108,27 @@ export const InfiniteMovingCards = ({
               />
             </div>
             <blockquote>
-              <h3 className="relative z-20 text-lg leading-[1.6] text-gray-100 font-semibold">
-                {item.title}
-              </h3>
-              <span className="relative z-20 text-sm leading-[1.6] text-gray-100 font-normal">
-                {item.description}
-              </span>
-              <div className="relative z-20 mt-6 flex flex-row items-center">
-                <span className="flex flex-col gap-1">
-                  <span className="text-sm leading-[1.6] text-gray-400 font-normal">
-                    Mentor: {item.mentor}
-                  </span>
-                </span>
-              </div>
-            </blockquote>
+  <h3 className="relative z-20 text-lg leading-[1.6] text-gray-100 font-semibold">
+    {item.title}
+  </h3>
+  <span className="relative z-20 text-sm leading-[1.6] text-gray-100 font-normal">
+    {item.description}
+  </span>
+  <div className="relative z-20 mt-6 flex flex-row items-center">
+  <span className="relative z-20 text-sm leading-[1.6] text-gray-100 font-normal">
+    30th December |
+  </span>
+    <span className="flex flex-col gap-1">
+      <span className="text-sm leading-[1.6] text-white font-normal">
+         {item.mentor}
+      </span>
+    </span>
+  </div>
+  <button className="mt-4 px-6 py-2 bg-white text-black font-semibold rounded-lg hover:bg-gray-200 transition-colors duration-200">
+    Register
+  </button>
+</blockquote>
+
           </li>
         ))}
       </ul>

@@ -247,7 +247,7 @@ export default function Home() {
     } catch (error) {
       console.error('Network error:', error);
     } finally {
-      setLoading(false); // Stop loading after saving data
+      setLoading(false); 
     }
   };
 
@@ -299,7 +299,7 @@ export default function Home() {
               userData={userData}
               recommendedActivities={recommendedActivity}
               recommendedTasks={recommendedTask}
-              recommendedWorkshops={recommendedWorkshop}
+              recommendedWorkshops={recommendedWorkshop || null}
               mentors={mentors}
             />
           </motion.div>

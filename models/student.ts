@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-// Define the interface for the student document
+
 interface IStudent extends Document {
   name: string;
   email: string;
@@ -21,7 +21,7 @@ const studentSchema = new Schema<IStudent>({
     required: true,
     unique: true,
     validate: {
-      validator: (v: string) => /.+@.+\..+/.test(v), // Simple email validation regex
+      validator: (v: string) => /.+@.+\..+/.test(v), 
       message: (props: { value: string }) => `${props.value} is not a valid email!`,
     },
   },
