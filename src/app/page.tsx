@@ -162,48 +162,48 @@ export default function Home() {
 
   const handlePersonalInfoSubmit = async (name: string, email: string) => {
     setUserData({ ...userData, name, email });
-    setLoading(true); // Set loading while checking user existence
+    // setLoading(true); // Set loading while checking user existence
 
-    try {
-      const response = await fetch('/api/db', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          name,
-          strengths: [],
-          weaknesses: [],
-          preferences: [],
-          interests: [],
-          availability: [],
-        }),
-      });
+    // try {
+    //   const response = await fetch('/api/db', {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify({
+    //       email,
+    //       name,
+    //       strengths: [],
+    //       weaknesses: [],
+    //       preferences: [],
+    //       interests: [],
+    //       availability: [],
+    //     }),
+    //   });
 
-      const result = await response.json();
+    //   const result = await response.json();
 
-      if (response.ok) {
-        if (result.userExists) {
-          setUserData(result.user);
-          setUserExists(true);
-          await fetchTaskRecommendation(email); // Wait for task recommendation
-          await fetchActivityRecommendation(email); // Fetch activity recommendations
-          await fetchWorkshopRecommendation(email); // Fetch workshop recommendations
-          setStep(3);
-        } else {
-          setUserExists(false);
-          setStep(2);
-        }
-      } else {
-        console.error('Error checking user existence:', result);
-        alert('An error occurred while checking user existence.');
-      }
-    } catch (error) {
-      console.error('Network error:', error);
-    } finally {
-      setLoading(false); // Stop loading after user check
-    }
+    //   if (response.ok) {
+    //     if (result.userExists) {
+    //       setUserData(result.user);
+    //       setUserExists(true);
+    //       await fetchTaskRecommendation(email); // Wait for task recommendation
+    //       await fetchActivityRecommendation(email); // Fetch activity recommendations
+    //       await fetchWorkshopRecommendation(email); // Fetch workshop recommendations
+    //       setStep(3);
+    //     } else {
+    //       setUserExists(false);
+    //       setStep(2);
+    //     }
+    //   } else {
+    //     console.error('Error checking user existence:', result);
+    //     alert('An error occurred while checking user existence.');
+    //   }
+    // } catch (error) {
+    //   console.error('Network error:', error);
+    // } finally {
+    //   setLoading(false); // Stop loading after user check
+    // }
   };
 
   const handleQuestionnaireSubmit = async (strengths: string[], weaknesses: string[], preferences: string[]) => {
