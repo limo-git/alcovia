@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import PersonalInfoForm from './components/PersonalInfoForm';
 import QuestionnaireForm from './components/QuestionnaireForm';
 import { Dashboard } from './components/Dashboard';
+import { Spinner } from '@/components/ui/spinner';
 
 interface Task {
   taskName: string;
@@ -165,55 +166,18 @@ export default function Home() {
 
   const handlePersonalInfoSubmit = async (name: string, email: string) => {
     setUserData({ ...userData, name, email });
-    setLoading(true); // Set loading while checking user existence
-
-    // try {
-    //   const response = await fetch('/api/db', {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({
-    //       email,
-    //       name,
-    //       strengths: [],
-    //       weaknesses: [],
-    //       preferences: [],
-    //       interests: [],
-    //       availability: [],
-    //     }),
-    //   });
-
-    //   const result = await response.json();
-
-    //   if (response.ok) {
-    //     if (result.userExists) {
-    //       setUserData(result.user);
-    //       setUserExists(true);
-    //       await fetchTaskRecommendation(email); // Wait for task recommendation
-    //       await fetchActivityRecommendation(email); // Fetch activity recommendations
-    //       await fetchWorkshopRecommendation(email); // Fetch workshop recommendations
-    //       setStep(3);
-    //     } else {
-    //       setUserExists(false);
+    setLoading(true); 
           setStep(2);
-    //     }
-    //   } else {
-    //     console.error('Error checking user existence:', result);
-    //     alert('An error occurred while checking user existence.');
-    //   }
-    // } catch (error) {
-    //   console.error('Network error:', error);
-    // } finally {
-      setLoading(false); // Stop loading after user check
-    // }
+   
+      setLoading(false); 
+    
   };const handleQuestionnaireSubmit = async (
     strengths: string[],
     weaknesses: string[],
     preferences: { learning_style: string; preferred_topics: string[] }, // Update the type here
     availability: string[]
   ) => {
-    setLoading(true); // Set loading while saving data
+    setLoading(true); 
     await fetchMentors();
   
     try {
@@ -292,7 +256,7 @@ export default function Home() {
             transition={{ duration: 0.3 }}
             className="flex justify-center items-center h-screen"
           >
-            <p>Loading...</p>
+            <Spinner/>
           </motion.div>
         )}
         {step === 3 && !loading && (
