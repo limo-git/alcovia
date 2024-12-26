@@ -20,6 +20,8 @@ interface Task {
   expertise: string[]; 
   contact_email: string; 
   availability: string[]; 
+  avatar:string;
+  score:string;
 }
 
 interface Activity {
@@ -46,12 +48,12 @@ export default function Home() {
     email: '',
     strengths: [] as string[],
     weaknesses: [] as string[],
-    preferences: [] as string[],
+    preferences: { learning_style: '', preferred_topics: [] } as { learning_style: string; preferred_topics: string[] },
     interests: [] as string[],
     availability: [] as string[],
   });
   const [mentors,setMentors] = useState<Mentor[] | null>(null);
-  const [recommendedTask, setRecommendedTask] = useState<Task[] | null>(null);
+  const [recommendedTask, setRecommendedTask] = useState<string | null>(null);
   const [recommendedActivity, setRecommendedActivity] = useState<Activity[] | null>(null);
   const [recommendedWorkshop, setRecommendedWorkshop] = useState<Workshop[] | null>(null);
   const [userExists, setUserExists] = useState(false);
@@ -204,12 +206,15 @@ export default function Home() {
     // } finally {
       setLoading(false); // Stop loading after user check
     // }
-  };
-
-  const handleQuestionnaireSubmit = async (strengths: string[], weaknesses: string[], preferences: string[]) => {
+  };const handleQuestionnaireSubmit = async (
+    strengths: string[],
+    weaknesses: string[],
+    preferences: { learning_style: string; preferred_topics: string[] }, // Update the type here
+    availability: string[]
+  ) => {
     setLoading(true); // Set loading while saving data
     await fetchMentors();
-
+  
     try {
       const response = await fetch('/api/db', {
         method: 'POST',
@@ -221,12 +226,13 @@ export default function Home() {
           name: userData.name,
           strengths,
           weaknesses,
-          preferences,
+          preferences, // preferences now has the correct structure
+          availability, // availability is now included
         }),
       });
-
+  
       const result = await response.json();
-
+  
       if (response.ok) {
         console.log('Data saved:', result);
         setUserData({
@@ -234,11 +240,12 @@ export default function Home() {
           strengths,
           weaknesses,
           preferences,
+          availability, // Update availability in userData
         });
         await fetchTaskRecommendation(userData.email); // Wait for task recommendation
         await fetchActivityRecommendation(userData.email); // Fetch activity recommendations
         await fetchWorkshopRecommendation(userData.email); // Fetch workshop recommendations
-        await fetchMentors;
+        await fetchMentors();
         setStep(3);
       } else {
         console.error('Error:', result);
@@ -247,10 +254,10 @@ export default function Home() {
     } catch (error) {
       console.error('Network error:', error);
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
-
+  
   return (
     <div className="container mx-auto p-4">
       <AnimatePresence mode="wait">
@@ -294,6 +301,7 @@ export default function Home() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3 }}
             className="w-full"
+            
           >
             <Dashboard
               userData={userData}

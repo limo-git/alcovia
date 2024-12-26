@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState , useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -12,6 +11,12 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, 
 import IconCloud from '@/components/ui/icon-cloud';
 import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
 import { InfiniteMovingCardsDemo } from './Workshops';
+import { motion,AnimatePresence } from "framer-motion"
+import { Calendar, Clock, Briefcase, CheckCircle, XCircle  } from 'lucide-react'
+import Image from "next/image";
+import confetti from "canvas-confetti";
+import { Progress } from '@/components/ui/progress';
+
 
 const words = `Your learning journery awaits. Dive In
 `;
@@ -73,9 +78,9 @@ interface DashboardProps {
     email: string;
     strengths: string[];
     weaknesses: string[];
-    preferences: string[];
+    preferences: { learning_style: string; preferred_topics: string[] };
   };
-  recommendedTasks: Task[] | null;
+  recommendedTasks: string | null;
   recommendedActivities:Activity[] | null;
   recommendedWorkshops:Workshop[] |null;
   mentors:Mentor[]| null;
@@ -87,6 +92,8 @@ interface Mentor {
   expertise: string[]; // Array of strings representing mentor's areas of expertise
   contact_email: string; // Mentor's contact email
   availability: string[]; // Array of strings representing mentor's availability
+  avatar:string;
+  score:string;
 }
 
 
@@ -128,6 +135,20 @@ export function Dashboard({ userData,mentors,recommendedActivities, recommendedW
   });
 
   const [selectedType, setSelectedType] = useState<keyof typeof workshopData>('React');
+  const [parsedTask, setParsedTask] = useState<{ task: string; description: string; category: string } | null>(null);
+  useEffect(() => {
+    if (recommendedTasks) {
+      try {
+        // Extract JSON from the code block
+        const jsonString = recommendedTasks.replace('```json\n', '').replace('\n```', '');
+        const task = JSON.parse(jsonString);
+        setParsedTask(task);
+      } catch (error) {
+        console.error('Error parsing recommended tasks:', error);
+      }
+    }
+  }, [recommendedTasks]);
+
 
   const handleFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedType(event.target.value as keyof typeof workshopData);
@@ -194,7 +215,9 @@ export function Dashboard({ userData,mentors,recommendedActivities, recommendedW
   
   const [loading, setLoading] = useState(false);
   const [mentorDetails, setMentorDetails] = useState<Mentor | null>(null);
-  
+  const [taskStarted, setTaskStarted] = useState(false);
+  const [taskCompleted, setTaskCompleted] = useState(false);
+  const [progress, setProgress] = useState(0); // 
   const [isFirstDialogOpen, setIsFirstDialogOpen] = useState(false); 
   const [isSecondDialogOpen, setIsSecondDialogOpen] = useState(false); 
 
@@ -203,8 +226,52 @@ export function Dashboard({ userData,mentors,recommendedActivities, recommendedW
     setMentorQuestions((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleStartTask = () => {
+    setTaskStarted(true);
+    setProgress(25); // Start with some progress (e.g., 25%)
+  };
+
+  const handleMarkCompleted = () => {
+    setTaskCompleted(true);
+    setProgress(100); // Set progress to 100 when completed
+  
+    // Trigger the confetti effect
+    const end = Date.now() + 3 * 1000; // 3 seconds
+    const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
+  
+    const frame = () => {
+      if (Date.now() > end) return;
+  
+      confetti({
+        particleCount: 2,
+        angle: 60,
+        spread: 55,
+        startVelocity: 60,
+        origin: { x: 0, y: 0.5 },
+        colors: colors,
+      });
+      confetti({
+        particleCount: 2,
+        angle: 120,
+        spread: 55,
+        startVelocity: 60,
+        origin: { x: 1, y: 0.5 },
+        colors: colors,
+      });
+  
+      requestAnimationFrame(frame);
+    };
+  
+    frame();
+  };
+
+  const handleMarkIncomplete = () => {
+    setTaskCompleted(false);
+    setProgress(0); // Reset progress when marked incomplete
+  };
+
   return (
-    <div className="flex bg-gray-50 min-h-screen text-gray-800 font-sans">
+    <div className="flex bg-gray-50 min-h-screen text-gray-800 font-sans ">
       <ScrollArea className="flex-grow h-screen">
     <div className='flex pl-[40rem] justify-center items-center'>
       <IconCloud imageArray={images} />
@@ -225,29 +292,77 @@ export function Dashboard({ userData,mentors,recommendedActivities, recommendedW
           </motion.div>
           
           <section id="start" className="w-full space-y-6">
-          
-  <h2 className="text-3xl font-bold">Today&apos;s Task</h2>
-  
-  <Card className="w-full ">
-  
-  <CardHeader>
-  <CardTitle className="text-xl font-bold">
-    {recommendedTasks && recommendedTasks[0] ? recommendedTasks[0].taskName : 'No Task Available'}
-  </CardTitle>
-  <CardDescription className="text-sm">
-    {recommendedTasks && recommendedTasks[0] ? recommendedTasks[0].description : 'Complete the recommended task today!'}
-  </CardDescription>
-</CardHeader>
+          <motion.section
+      className="w-full max-w-2xl mx-auto space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.h2
+        className="text-3xl font-bold"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
+        Today&apos;s Task
+      </motion.h2>
 
-    <CardContent>
-      <Button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full">
-        Start Task
-      </Button>
-    </CardContent>
-    
-  </Card>
-  
-</section>
+      <Card>
+        <CardHeader>
+          <CardTitle>{parsedTask ? parsedTask.task : "No Task Available"}</CardTitle>
+          <CardDescription>{parsedTask ? parsedTask.description : "Complete the recommended task today!"}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <AnimatePresence mode="wait">
+            {!taskStarted ? (
+              <motion.div
+                key="start-button"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Button variant="default" size="lg" onClick={handleStartTask}>
+                  Start Task
+                </Button>
+              </motion.div>
+            ) : taskCompleted ? (
+              <motion.div
+                key="completed"
+                className="flex items-center space-x-2"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              >
+                <CheckCircle className="h-6 w-6 text-green-500" />
+                <span className="text-green-500 font-bold">Completed</span>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="in-progress"
+                className="space-y-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              >
+                <Progress value={progress} className="w-full" />
+                <div className="flex space-x-4">
+                  <Button variant="default" onClick={handleMarkCompleted}>
+                    <CheckCircle className="mr-2 h-4 w-4" /> Mark as Completed
+                  </Button>
+                  <Button variant="destructive" onClick={handleMarkIncomplete}>
+                    <XCircle className="mr-2 h-4 w-4" /> Mark as Incomplete
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </CardContent>
+      </Card>
+    </motion.section>
+    </section>
 
 
 
@@ -276,27 +391,11 @@ export function Dashboard({ userData,mentors,recommendedActivities, recommendedW
 </section>
 
 
-          {/* Workshops */}
+
           <section id="workshops" className="space-y-6">
-          {/* <h2 className="text-3xl font-bold">Upcoming Workshops</h2> */}
-            {/* <MarqueeDemo/> */}
+          
             <InfiniteMovingCardsDemo recommendedWorkshops={recommendedWorkshops ?? []}/>
-           
-    {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {(recommendedWorkshops ?? []).map((workshop, index) => (
-        <Card key={index} className="shadow-md rounded-xl">
-          <CardHeader>
-            <CardTitle>{workshop.workshopName}</CardTitle>
-            <CardDescription>{`Workshop on ${workshop.description}`}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button className="bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md">
-              Join Workshop
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
-    </div>  */}
+
 </section>
 
 
@@ -315,7 +414,7 @@ export function Dashboard({ userData,mentors,recommendedActivities, recommendedW
                 mentor={{
                   name: mentor.name,
                   expertise: mentor.expertise.join(', '), // Join expertise array into a string
-                  avatar: '/default-avatar.png', // Add a default avatar or modify it based on mentor data
+                  avatar: mentor.avatar, // Add a default avatar or modify it based on mentor data
                 }}
               />
             ))}
@@ -328,8 +427,10 @@ export function Dashboard({ userData,mentors,recommendedActivities, recommendedW
           )
         )}
             <Dialog open={isFirstDialogOpen}>
-        <DialogTrigger asChild>
-          <Button onClick={() => setIsFirstDialogOpen(true)} className="mt-4">Want to find your Perfect mentor?</Button>
+        <DialogTrigger asChild >
+          <div className='flex justify-center items-center'>
+          <Button  onClick={() => setIsFirstDialogOpen(true)} className="mt-4">Want to find your Perfect mentor?</Button>
+          </div>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
@@ -404,21 +505,85 @@ export function Dashboard({ userData,mentors,recommendedActivities, recommendedW
             <DialogTitle>Your Top Mentor Match</DialogTitle>
           </DialogHeader>
           {mentorDetails ? (
-            <Card className="mt-8 bg-white rounded-xl shadow-md">
-              <CardHeader>
-                <CardTitle>{mentorDetails.name || 'No name provided'}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <h3 className="text-xl">{mentorDetails.name || 'No name provided'}</h3>
-                <p className="text-sm text-gray-600">
-                  Expertise: {mentorDetails.expertise?.join(', ') || 'No expertise listed'}
-                </p>
-                <p className="mt-2">Email: {mentorDetails.contact_email || 'No email provided'}</p>
-                <p className="mt-2">
-                  Availability: {mentorDetails.availability?.join(', ') || 'No availability listed'}
-                </p>
-              </CardContent>
-            </Card>
+           
+            <div className="flex items-center justify-center">
+            <motion.div
+              className="bg-white rounded-xl shadow-lg overflow-hidden w-64 p-6"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              whileHover={{ y: -5 }}
+            >
+              <motion.div
+                className="relative w-32 h-32 mx-auto mb-4"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <Image
+                  src="/images/img2.jpg"
+                  alt="Mentor avatar"
+                  layout="fill"
+                  objectFit="cover"
+                  className="rounded-full"
+                />
+                <motion.div
+                  className="absolute inset-0 border-4 border-blue-500 rounded-full"
+                  initial={{ scale: 1.2, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                />
+              </motion.div>
+      
+              <motion.div
+                className="text-center mb-4"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
+                <div className="text-2xl font-bold text-gray-800">{mentorDetails.name}</div>
+                <div className="text-sm text-gray-600">{mentorDetails.expertise}</div>
+              </motion.div>
+      
+              <motion.div
+                className="bg-blue-100 text-blue-800 text-xl font-bold rounded-full py-2 px-4 mb-4 mx-auto w-max"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+              >
+                {mentorDetails.score} 
+              </motion.div>
+      
+              <motion.div
+                className="space-y-2 mb-4"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+              >
+                <div className="flex items-center text-sm text-gray-600">
+                  <Calendar className="w-4 h-4 mr-2 text-blue-500" />
+                  Available Mon, Wed, Fri
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <Clock className="w-4 h-4 mr-2 text-blue-500" />
+                  2:00 PM - 6:00 PM EST
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <Briefcase className="w-4 h-4 mr-2 text-blue-500" />
+                  8 years experience
+                </div>
+              </motion.div>
+      
+              <motion.button
+                className="w-full bg-blue-500 text-white py-2 rounded-md font-semibold"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Connect with {mentorDetails.name}
+              </motion.button>
+            </motion.div>
+          </div>
+      
           ) : (
             <div className="text-center mt-8">
               <p>Loading mentor details...</p>

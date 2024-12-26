@@ -1,60 +1,89 @@
-import mongoose from 'mongoose';
-import Task from '../../../../models/task'; 
-import Student from '../../../../models/student'; 
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '../../../../utils/utils';
+import mongoose from "mongoose";
+import {GoogleGenerativeAI} from "@google/generative-ai"
+import { NextRequest, NextResponse } from "next/server";
+import dbConnect from "../../../../utils/utils";
+import Student from "../../../../models/student"; // Ensure this matches your actual model path
 
+const genAI = new GoogleGenerativeAI("AIzaSyAyST_XCbgwjWOPJ_Kr3vN8S69GgFwnBNE");
+// Connect to the database
 const connectToDatabase = async () => {
-    if (mongoose.connection.readyState >= 1) return;
-    await dbConnect();
+  if (mongoose.connection.readyState >= 1) return;
+  await dbConnect();
 };
 
-
 export async function POST(req: NextRequest) {
-  await connectToDatabase();
-  const { email } = await req.json();
-
-  if (!email) {
-    return NextResponse.json({ error: 'Email is required to get recommendations' }, { status: 400 });
-  }
-
   try {
+    await connectToDatabase();
 
+    // Parse the request body
+    const { email } = await req.json();
+    if (!email) {
+      return NextResponse.json(
+        { error: "Email is required to get recommendations" },
+        { status: 400 }
+      );
+    }
+
+    // Fetch student information from the database
     const student = await Student.findOne({ email });
-
     if (!student) {
-      return NextResponse.json({ error: 'Student not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Student not found" },
+        { status: 404 }
+      );
     }
 
-    
-    const tasks = await Task.find();
+    const { preferred_topics, learning_style } = student.preferences;
 
-
-    const recommendedTasks = tasks.filter((task) => {
-      const { category, duration, timeOfDay } = task;
-
-
-      const matchesCategory = student.preferences.preferred_topics.some((topic: string) => category.includes(topic));
-      const matchesLearningStyle = student.preferences.learning_style && category.includes(student.preferences.learning_style);
-      const matchesTimeOfDay = student.availability.includes(timeOfDay);
-
-      
-      const matchesDuration = duration === 'Any' || duration === 'Flexible' || student.preferences.learning_style.includes(duration);
-
-      
-      return (matchesCategory || matchesLearningStyle || matchesTimeOfDay || matchesDuration);
-    });
-
-    
-    if (recommendedTasks.length === 0) {
-      return NextResponse.json({ message: 'No tasks match your preferences for today' }, { status: 200 });
+    if (!preferred_topics || !learning_style || !student.availability) {
+      return NextResponse.json(
+        { error: "Incomplete student preferences" },
+        { status: 400 }
+      );
     }
+    
+  
+   
+    
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const prompt = `
+     Based on the student's preferences, suggest one engaging and unique task:
+    - Preferred Topics: ${preferred_topics.join(", ")}
+    - Learning Style: ${learning_style}
+    - Availability: ${student.availability.join(", ")}
 
+    Ensure the task:
+    - Matches their interests and learning style.
+    - Fits their availability.
+    - Includes a brief description and category.
+
+     Please return the result in the following structured format:
+      {
+        "task": "Task name",
+        "category": "Category name",
+        "description": "Description of the task"
+      }
+    
+    `;
+    
+    const result = await model.generateContent(prompt);
+    
+    // Correctly extract the message text from the response
+    const recommendedTasks = result.response.text()
+
+    if (!recommendedTasks) {
+      return NextResponse.json(
+        { message: "No recommendations could be generated" },
+        { status: 200 }
+      );
+    }
 
     return NextResponse.json({ recommendedTasks }, { status: 200 });
-
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Error in POST /api/task:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }

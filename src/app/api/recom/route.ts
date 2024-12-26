@@ -16,6 +16,7 @@ function createMentorText(mentor: Mentor): string {
   const availability = Array.isArray(mentor.availability) ? mentor.availability.join(', ') : 'No availability listed';
   return `Name: ${mentor.name}. Expertise: ${expertise}. Availability: ${availability}. Contact Email: ${mentor.email}.`;
 }
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
   await dbConnect();
 
@@ -26,15 +27,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    
     const student = await students.findOne({ email });
 
     if (!student) {
       return NextResponse.json({ error: 'Student not found' }, { status: 404 });
     }
 
-
-    const studentText = `Goals: ${goals || 'Not provided'}. Strengths: ${strengths || student.strengths.join(', ')}. Interests: ${type || student.interests.join(', ')}. Weaknesses: ${weaknesses || student.weaknesses.join(', ')}. Availability: ${availability || "Not found"} Preferences: ${preferences || JSON.stringify(student.preferences)}.`;
+    const studentText = `Goals: ${goals || 'Not provided'}. Strengths: ${strengths || student.strengths.join(', ')}. Interests: ${type || student.interests.join(', ')}. Weaknesses: ${weaknesses || student.weaknesses.join(', ')}. Availability: ${availability || 'Not found'}. Preferences: ${preferences || JSON.stringify(student.preferences)}.`;
 
     const huggingFaceAPI = 'https://api-inference.huggingface.co/models/sentence-transformers/all-MiniLM-L6-v2';
     const headers = {
@@ -44,7 +43,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const mentors = await Mentor.find();
 
     const mentorTexts = mentors.map(mentor => createMentorText(mentor));
-
 
     const embeddingResponse = await axios.post(
       huggingFaceAPI,
@@ -63,29 +61,28 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     const scores: number[] = embeddingResponse.data;
 
-
+    // Convert scores to percentages and sort
     const mentorRecommendations = mentors
-      .map((mentor, idx) => ({ mentor, score: scores[idx] }))
-      .sort((a, b) => b.score - a.score);
-
+      .map((mentor, idx) => ({
+        mentor,
+        score: (scores[idx] * 100).toFixed(1), // Convert to percentage
+      }))
+      .sort((a, b) => parseFloat(b.score) - parseFloat(a.score));
 
     const topMentor = mentorRecommendations[0];
 
-    
-    const mentorData = await Mentor.findOne({ email: topMentor.mentor.email });
-
-    if (!mentorData) {
-      return NextResponse.json({ error: 'Mentor not found in the database' }, { status: 404 });
+    if (!topMentor) {
+      return NextResponse.json({ error: 'No mentors available' }, { status: 404 });
     }
 
     return NextResponse.json({
       mentor: {
-        name: mentorData.name,
-        email: mentorData.email,
-        expertise: mentorData.expertise,
-        availability: mentorData.availability,
-        contact_email: mentorData.email,  
-        score: topMentor.score,
+        name: topMentor.mentor.name,
+        email: topMentor.mentor.email,
+        expertise: topMentor.mentor.expertise,
+        availability: topMentor.mentor.availability,
+        avatar: topMentor.mentor.avatar, // Assuming avatar field exists
+        score: `${topMentor.score}%`,
       },
     });
   } catch (error) {
