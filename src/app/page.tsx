@@ -38,6 +38,7 @@ interface Workshop {
   date: string;
   duration: string;
   difficultyLevel: string;
+  image:string;
 }
 
 export default function Home() {

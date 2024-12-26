@@ -8,6 +8,7 @@ const workshopSchema = new mongoose.Schema({
   learning_style: { type: String }, 
   duration: { type: String }, 
   timeOfDay: { type: String }, 
+  image: { type: String },
 });
 
 export default mongoose.models.Workshop || mongoose.model('Workshop', workshopSchema);

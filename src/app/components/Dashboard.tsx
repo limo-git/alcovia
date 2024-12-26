@@ -69,6 +69,7 @@ interface Workshop {
   date: string;
   duration: string;
   difficultyLevel: string;
+  image:string
 }
 
 

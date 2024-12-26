@@ -8,6 +8,7 @@ interface Workshop {
   date: string;
   duration: string;
   difficultyLevel: string;
+  image:string;
 }
 
 export function InfiniteMovingCardsDemo({ recommendedWorkshops }: { recommendedWorkshops: Workshop[] }) {
@@ -16,7 +17,7 @@ export function InfiniteMovingCardsDemo({ recommendedWorkshops }: { recommendedW
     title: workshop.workshopName,
     mentor: "Unknown Mentor", 
     description: workshop.description,
-    image: "/images/img1.jpg", 
+    image: workshop.image, 
   }));
 
   return (
